@@ -19,6 +19,9 @@ Base = declarative_base(bind=engine)
 
 
 class School(Base):
+    def __repr__(self):
+        return f"<School id={self.id}; name='{self.name}'>"
+
     __tablename__ = "schools"
 
     id = Column("id", Integer, autoincrement=True, nullable=False)
