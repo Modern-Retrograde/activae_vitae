@@ -19,6 +19,11 @@ class EmailAlreadyUsedError(UserErrors):
         super(EmailAlreadyUsedError, self).__init__(f"Email '{email}' already used.")
 
 
+class SchoolNotFoundError(UserErrors):
+    def __init__(self, school_id: int):
+        super(SchoolNotFoundError, self).__init__(f"School (ID: {school_id}) not found.")
+
+
 class EventPhotoNotFoundError(EventError):
     def __init__(self, event_id: int, link: str):
         super(EventPhotoNotFoundError, self).__init__(f"No photo for event {event_id}.\nLink: '{link}'")

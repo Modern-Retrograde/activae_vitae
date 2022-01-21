@@ -37,6 +37,7 @@ class School(Base):
 class User(Base):
     def __repr__(self):
         return f"<User id={self.id}, role='{self.role}'>"
+
     __tablename__ = "users"
 
     id = Column("id", Integer, autoincrement=True, nullable=False)
@@ -74,6 +75,7 @@ class EventsForm(Base):
         return f"<EventsForm id={self.id}, name='{self.name}'>"
 
     __tablename__ = "events_form"
+
     id = Column("id", Integer, autoincrement=True, nullable=False)
     name = Column("name", VARCHAR(30), nullable=False)
     description = Column("description", Text, nullable=False)
@@ -86,6 +88,7 @@ class EventsForm(Base):
 class Event(Base):
     def __repr__(self):
         return f"<Event id={self.id}, name='{self.name}', organizer_id={self.organizer_id}>"
+
     __tablename__ = "events"
 
     id = Column("id", Integer, autoincrement=True, nullable=False)
@@ -105,6 +108,7 @@ class Event(Base):
 class EventPhoto(Base):
     def __repr__(self):
         return f"<EventPhoto event_id={self.event_id}, link='{self.link}'>"
+
     __tablename__ = "event_photos"
 
     event_id = Column("event_id", Integer, nullable=False)
@@ -119,6 +123,7 @@ class EventPhoto(Base):
 class SavedEvent(Base):
     def __repr__(self):
         return f"<SavedEvent event_id={self.event_id}, user_id={self.user_id}>"
+
     __tablename__ = "saved_events"
 
     event_id = Column("event_id", Integer, nullable=False)
