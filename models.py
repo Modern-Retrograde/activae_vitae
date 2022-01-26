@@ -81,7 +81,7 @@ class EventsForm(Base):
     description = Column("description", Text, nullable=False)
 
     __table_args__ = (
-        PrimaryKeyConstraint("id", name="events_form_pk")
+        PrimaryKeyConstraint("id", name="events_form_pk"),
     )
 
 
