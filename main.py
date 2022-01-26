@@ -3,10 +3,11 @@
 from flask import Flask
 from flask import render_template, redirect
 from flask import session, request
-import data_manipulate
-from errors import UserErrors
 from hashlib import md5
 
+import data_manipulate
+from errors import UserErrors
+from configs import all_roles_in_projects
 
 app = Flask(__name__)
 
@@ -67,7 +68,10 @@ def index():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        needed_params = ["email", "full_name", "password", "role", "school_id"]
+        needed_params = [
+            "email", "full_name", "password",
+            "role", "school_id"
+        ]
         this_request = request.values
         for needed_param in needed_params:
             if needed_param not in this_request:
@@ -112,6 +116,11 @@ def my_events():
 @app.route("/event/<int:event_id>")
 def event(event_id: int):
     return render_template("event.html", event_id=event_id)
+
+
+@app.route("/event/<int:event_id>/stats")
+def event(event_id: int):
+    return render_template("statistics.html", event_id=event_id)
 
 
 @app.route("/event/<int:event_id>/feedback")
