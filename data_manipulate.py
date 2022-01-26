@@ -249,7 +249,15 @@ def user_register(email: str, full_name: str, hash_password: str, role: str, sch
     if not get_school_by_id(school_id):
         raise SchoolNotFoundError(school_id)
 
-    return True, create_new_user(email, full_name, hash_password, role, school_id)
+    return create_new_user(email, full_name, hash_password, role, school_id)
+
+
+def get_user_by_id(user_id: int):
+    """Получение конкретного пользователя в БД."""
+    session: SessionObject
+    with Session() as session:
+        user = session.query(User).get(user_id)
+    return user
 
 
 def user_authorize(token: str):
@@ -257,15 +265,15 @@ def user_authorize(token: str):
     Сверка токена, авторизация пользователя.
     """
     session: SessionObject
+    user = None
     with Session() as session:
         tokens = session.query(Token).get(token).all()
-        if not tokens:
-            token = None
-        else:
+        if tokens:
             token = tokens[0]
-            if token.expire_date <= datetime.datetime.now():
-                token = None
-    return bool(token)
+            if not token.expire_date <= datetime.datetime.now():
+                user = get_user_by_id(token.user_id)
+
+    return user
 
 
 def create_token(session: SessionObject = None):

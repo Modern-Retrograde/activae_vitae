@@ -8,6 +8,9 @@ class UserErrors(ClassicError):
     def __init__(self, comment: str):
         super(UserErrors, self).__init__("User's error: " + comment)
 
+    def __bool__(self):
+        return False
+
 
 class EventError(ClassicError):
     def __init__(self, comment: str):
