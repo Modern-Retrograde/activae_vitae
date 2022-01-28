@@ -7,7 +7,6 @@ from hashlib import md5
 
 import data_manipulate
 from errors import UserErrors
-from configs import all_roles_in_projects
 
 app = Flask(__name__)
 
