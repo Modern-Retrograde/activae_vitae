@@ -2,44 +2,26 @@
 
 from flask import Flask
 from flask import render_template, redirect
-from flask import session, request
-from hashlib import md5
+from flask import request, session
 
-import data_manipulate
+from hashlib import md5
+from random import choice as random_choice
+from configs import token_symbols, token_len
+
+import behaviour
 from errors import UserErrors
 
 app = Flask(__name__)
+app.config["CSRF_ENABLED"] = True
+app.config["SECRET_KEY"] = "".join([random_choice(token_symbols) for _ in range(token_len)])
 
 
 def make_hash_password(password: str):
     return md5(bytes(password, encoding="utf-8")).hexdigest()
 
 
-def get_user(login: str = None, password: str = None):
-    """
-    Получение данных о пользователе через доступные данные.
-    Возвращает None, если пользователь не зашёл в систему.
-    Возвращает User если пользователь находится в системе.
-    """
-    if "token" in session:
-        user = data_manipulate.user_authorize(session["token"])
-    elif login and password:
-        hash_password = make_hash_password(password)
-        token = data_manipulate.user_authenticate(login, hash_password)
-        if token:
-            session["token"] = token.token
-            return get_user()
-        else:
-            user = None
-    else:
-        user = None
-
-    return user
-
-
 def registration(email: str, full_name: str,
-                 password: str, role: str,
-                 school_id: str):
+                 password: str, role: str, verified: bool = False):
     """
     Регистрация нового пользователя в системе.
     Возвращает User, если новый пользователь создан.
@@ -47,96 +29,65 @@ def registration(email: str, full_name: str,
     """
     hash_password = make_hash_password(password)
     try:
-        school_id = int(school_id)
-        return data_manipulate.user_register(
+        return behaviour.user_registration(
             email=email, full_name=full_name,
-            hash_password=hash_password, role=role,
-            school_id=school_id
+            hash_password=hash_password, role=role, verified=verified
         )
     except UserErrors as error:
         return error
-    except ValueError:
-        return UserErrors("School ID must be num.")
+
+
+def authenticate(email: str, password: str):
+    token = behaviour.user_authenticate(email, make_hash_password(password))
+    if token:
+        session.setdefault("token", token.key)
+        session.setdefault("expire_date", token.expire_date)
+        return True
+    return False
+
+
+def authorize(token: str):
+    if token:
+        user = behaviour.user_authorize(token)
+        return user
+    return False
 
 
 @app.route("/")
 def index():
-    return render_template("main_page.html")
+    user = authorize(session.get("token"))
 
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        needed_params = [
-            "email", "full_name", "password",
-            "role", "school_id"
-        ]
-        this_request = request.values
-        for needed_param in needed_params:
-            if needed_param not in this_request:
-                return redirect("/register")
-
-        new_user = registration(
-            email=this_request["email"],
-            full_name=this_request["full_name"],
-            password=this_request["password"],
-            role=this_request["role"],
-            school_id=this_request["school_id"]
-        )
-        if not new_user:
-            return redirect("/register")
-        get_user(this_request["email"], this_request["password"])
-        return redirect("/")
-    else:
-        return render_template("registration.html")
+    return render_template("main.html", user=user)
 
 
 @app.route("/login", methods=["GET", "POST"])
-def login_user():
+def login():
     if request.method == "POST":
-        this_request = request.values
-        if "login" not in this_request or "password" not in this_request:
+        this_request = dict(request.values)
+        if "password" not in this_request or "email" not in this_request:
             return redirect("/login")
-        get_user(this_request["login"], this_request["password"])
-        return redirect("/")
+        success = authenticate(this_request["email"], this_request["password"])
+        if success:
+            return redirect("/")
+        return render_template("login.html", error="Неверный логин или пароль.")
     return render_template("login.html")
 
 
-@app.route("/main_page")
-def main_page():
-    return redirect("/")
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == "POST":
+        this_request = dict(request.values)
+        needed_params = ["email", "password", "role", "full_name"]
+        if not all(map(lambda x: x in this_request, needed_params)):
+            return render_template("registration.html", error="Все поля должны быть заполнены.")
+        if not all(map(lambda x: this_request[x], needed_params)):
+            return render_template("registration.html", error="Все поля должны быть заполнены!")
 
-
-@app.route("/my_events")
-def my_events():
-    return render_template("events.html")
-
-
-@app.route("/event/<int:event_id>")
-def event(event_id: int):
-    return render_template("event.html", event_id=event_id)
-
-
-@app.route("/event/<int:event_id>/stats")
-def event(event_id: int):
-    return render_template("statistics.html", event_id=event_id)
-
-
-@app.route("/event/<int:event_id>/feedback")
-def feedback(event_id: int):
-    return render_template("feedback.html", event_id=event_id)
-
-
-@app.route("/my_account")
-def my_account():
-    return render_template("my_account.html")
-
-
-@app.route("/event_create")
-def event_create():
-    return render_template("event_create.html")
-
-
-@app.route("/change_event/<int:event_id>")
-def change_event(event_id: int):
-    return render_template("change_event.html", event_id=event_id)
+        user = registration(
+            this_request["email"], this_request["full_name"],
+            this_request["password"], this_request["role"]
+        )
+        if user:
+            return redirect("/login")
+        return render_template("registration.html", error=user.comment)
+    return render_template("registration.html")

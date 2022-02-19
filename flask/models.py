@@ -6,7 +6,7 @@ from sqlalchemy.orm.session import sessionmaker
 
 from sqlalchemy import Column
 from sqlalchemy import Integer, VARCHAR, Text, TIMESTAMP, Boolean
-from sqlalchemy import PrimaryKeyConstraint, ForeignKeyConstraint
+from sqlalchemy import PrimaryKeyConstraint, ForeignKeyConstraint, UniqueConstraint
 
 
 from configs import sqlalchemy_arguments, recreate_database
@@ -20,20 +20,6 @@ Session = sessionmaker(bind=engine)
 Base = declarative_base(bind=engine)
 
 
-class School(Base):
-    def __repr__(self):
-        return f"<School id={self.id}; name='{self.name}'>"
-
-    __tablename__ = "schools"
-
-    id = Column("id", Integer, autoincrement=True, nullable=False)
-    name = Column("name", VARCHAR(50), nullable=False)
-
-    __table_args__ = (
-        PrimaryKeyConstraint("id", name="school_pk"),
-    )
-
-
 class User(Base):
     def __repr__(self):
         return f"<User id={self.id}, role='{self.role}'>"
@@ -45,12 +31,11 @@ class User(Base):
     full_name = Column("full_name", Text, nullable=False)
     hash_password = Column("hash_password", VARCHAR(255), nullable=False)
     role = Column("role", VARCHAR(20), nullable=False)
-    school_id = Column("school_id", Integer, nullable=False)
     verified = Column("verified", Boolean, default=False)
 
     __table_args__ = (
-        ForeignKeyConstraint(("id", ), ("schools.id", )),
-        PrimaryKeyConstraint("id", name="user_pk")
+        PrimaryKeyConstraint("id", name="user_pk"),
+        UniqueConstraint("email")
     )
 
 
@@ -61,27 +46,12 @@ class Token(Base):
     __tablename__ = "tokens"
 
     user_id = Column("user_id", Integer, nullable=False)
-    token = Column("token", VARCHAR(255), nullable=False)
+    key = Column("key", VARCHAR(255), nullable=False)
     expire_date = Column("expire_date", TIMESTAMP, nullable=False)
 
     __table_args__ = (
-        PrimaryKeyConstraint("user_id", "token", name="token_pk"),
+        PrimaryKeyConstraint("key", name="token_pk"),
         ForeignKeyConstraint(("user_id", ), ("users.id", ))
-    )
-
-
-class EventsForm(Base):
-    def __repr__(self):
-        return f"<EventsForm id={self.id}, name='{self.name}'>"
-
-    __tablename__ = "events_form"
-
-    id = Column("id", Integer, autoincrement=True, nullable=False)
-    name = Column("name", VARCHAR(30), nullable=False)
-    description = Column("description", Text, nullable=False)
-
-    __table_args__ = (
-        PrimaryKeyConstraint("id", name="events_form_pk"),
     )
 
 
@@ -93,14 +63,14 @@ class Event(Base):
 
     id = Column("id", Integer, autoincrement=True, nullable=False)
     name = Column("name", VARCHAR(50), nullable=False)
+    short_description = Column("short_description", Text, nullable=True)
     description = Column("description", Text, nullable=False)
-    date_of_the_event = Column("date_of_the_event", TIMESTAMP, nullable=False)
+    event_date = Column("date_of_the_event", TIMESTAMP, nullable=False)
     organizer_id = Column("organizer_id", Integer, nullable=False)
-    event_form = Column("event_form", Integer, nullable=False)
+    event_format = Column("event_format", Integer, nullable=False)
 
     __table_args__ = (
         ForeignKeyConstraint(("organizer_id", ), ("users.id", )),
-        ForeignKeyConstraint(("event_form", ), ("events_form.id", )),
         PrimaryKeyConstraint("id", name="events_pk")
     )
 
@@ -120,11 +90,11 @@ class EventPhoto(Base):
     )
 
 
-class SavedEvent(Base):
+class EventSaved(Base):
     def __repr__(self):
-        return f"<SavedEvent event_id={self.event_id}, user_id={self.user_id}>"
+        return f"<EventSaved event_id={self.event_id}, user_id={self.user_id}>"
 
-    __tablename__ = "saved_events"
+    __tablename__ = "events_saved"
 
     event_id = Column("event_id", Integer, nullable=False)
     user_id = Column("user_id", Integer, nullable=False)
@@ -133,6 +103,41 @@ class SavedEvent(Base):
         ForeignKeyConstraint(("event_id", ), ("events.id", )),
         ForeignKeyConstraint(("user_id", ), ("users.id", )),
         PrimaryKeyConstraint("event_id", "user_id", name="saved_events_pk"),
+    )
+
+
+class EventComment(Base):
+    def __repr__(self):
+        return f"<EventComment id={self.event_id}, user_id={self.user_id}, event_id={self.event_id}>"
+
+    __tablename__ = "events_comments"
+
+    id = Column("id", Integer, autoincrement=True, nullable=False)
+    event_id = Column("event_id", Integer, nullable=False)
+    text = Column("text", VARCHAR(100), nullable=False)
+    user_id = Column("user_id", Integer, nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("id", name="event_comments_pk"),
+        ForeignKeyConstraint(("user_id", ), ("users.id", )),
+        ForeignKeyConstraint(("event_id", ), ("events.id", )),
+    )
+
+
+class EventRate(Base):
+    def __repr__(self):
+        return f"<EventRate rating={self.rating}, event_id={self.event_id}, user_id={self.user_id}>"
+
+    __tablename__ = "events_rates"
+
+    event_id = Column("event_id", Integer, nullable=False)
+    user_id = Column("user_id", Integer, nullable=False)
+    rating = Column("rating", Integer, nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("event_id",  "user_id", name="event_rates_pk"),
+        ForeignKeyConstraint(("event_id", ), ("events.id", )),
+        ForeignKeyConstraint(("user_id", ), ("users.id", )),
     )
 
 
