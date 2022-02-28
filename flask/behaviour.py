@@ -138,11 +138,14 @@ def add_event(
         event_format=event_format
     )
     session: SessionObject
-    with Session() as session:
+    with Session(expire_on_commit=False) as session:
         session.add(event)
+        session.commit()
+
+    with Session(expire_on_commit=False) as session:
         for link in photos:
             session.add(EventPhoto(event_id=event.id, link=link))
-        session.commit()
+            session.commit()
 
     return event
 
@@ -178,3 +181,20 @@ def set_rate(event_id: int, user_id: int, rating: int):
         session.commit()
 
     return True
+
+
+def delete_all_users():
+    session: SessionObject
+    with Session() as session:
+        all_users = session.query(User).all()
+        for user in all_users:
+            session.delete(user)
+        session.commit()
+    return True
+
+
+def get_all_users():
+    session: SessionObject
+    with Session() as session:
+        all_users = session.query(User).all()
+    return all_users

@@ -1,15 +1,17 @@
 # Здесь происходит определение ответов различных запросов Фласком.
 
 from flask import Flask
-from flask import render_template, redirect
+from flask import render_template, redirect, abort
 from flask import request, session
 
 from hashlib import md5
 from random import choice as random_choice
-from configs import token_symbols, token_len
+from configs import token_symbols, token_len, date_format
 
 import behaviour
 from errors import UserErrors
+from configs import all_roles_in_projects
+from models import User
 
 app = Flask(__name__)
 app.config["CSRF_ENABLED"] = True
@@ -56,8 +58,56 @@ def authorize(token: str):
 @app.route("/")
 def index():
     user = authorize(session.get("token"))
+    query = request.values.get("query") if "query" in request.values else ""
+    events = behaviour.get_events(0, 10, query)
+    return render_template(
+        "main.html",
+        user=user,
+        events=events,
+        time_to_str=lambda x: x.strftime(date_format)
+    )
 
-    return render_template("main.html", user=user)
+
+@app.route("/event/<int:event_id>")
+def get_event(event_id: int):
+    user = authorize(session.get("token"))
+    event = behaviour.get_event_by_id(event_id)
+    if not event:
+        return redirect("/")
+
+    return render_template(
+        "event.html",
+        user=user,
+        event=event["event"],
+        photos=event["photos"],
+        enumerate=enumerate
+    )
+
+
+@app.route("/changeEvent/<int:event_id>", methods=["GET", "POST"])
+def change_event(event_id: int):
+    user: User
+    user = authorize(session.get("token"))
+    if not user:
+        return redirect("/login")
+    if not user.verified:
+        return redirect("/")
+    if user.role not in all_roles_in_projects:
+        return redirect("/")
+    if not all_roles_in_projects[user.role]["edit_events"]:
+        return redirect("/")
+
+    event = behaviour.get_event_by_id(event_id)
+    if not event:
+        return abort(404)
+
+    if request.method == "GET":
+        return render_template("changeEvent.html", event=event["event"], photos=event["photos"])
+    needed_params = ["description", "name", "date", "format"]
+
+    params = dict(request.values)
+    if not all(map(lambda x: x in needed_params, params)):
+        return abort(400)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -91,3 +141,10 @@ def register():
             return redirect("/login")
         return render_template("registration.html", error=user.comment)
     return render_template("registration.html")
+
+
+@app.before_first_request
+def before():
+    print(behaviour.get_all_users())
+    print("Deleting USERS", behaviour.delete_all_users())
+    print(behaviour.get_all_users())

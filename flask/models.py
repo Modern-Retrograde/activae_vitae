@@ -29,7 +29,7 @@ class User(Base):
     id = Column("id", Integer, autoincrement=True, nullable=False)
     email = Column("email", VARCHAR(255), nullable=False)
     full_name = Column("full_name", Text, nullable=False)
-    hash_password = Column("hash_password", VARCHAR(255), nullable=False)
+    hash_password = Column("hash_password", Text, nullable=False)
     role = Column("role", VARCHAR(20), nullable=False)
     verified = Column("verified", Boolean, default=False)
 
