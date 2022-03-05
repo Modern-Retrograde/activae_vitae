@@ -37,6 +37,8 @@ def verify_account(user_id: int):
     with Session() as session:
         query: Query
         user = session.query(User).get(user_id)
+        if not user:
+            return False
         user.verified = True
         session.commit()
     return True
@@ -161,6 +163,7 @@ def add_event(
         organizer_id=organizer_id,
         event_format=event_format
     )
+    photos_objects = list()
     session: SessionObject
     with Session(expire_on_commit=False) as session:
         session.add(event)
@@ -168,10 +171,32 @@ def add_event(
 
     with Session(expire_on_commit=False) as session:
         for link in photos:
-            session.add(EventPhoto(event_id=event.id, link=link))
-            session.commit()
+            photos_objects.append(EventPhoto(event_id=event.id, link=link))
+            session.add(photos_objects[-1])
+        session.commit()
 
-    return event
+    return {
+        "event": event,
+        "photos": photos_objects
+    }
+
+
+def delete_event(event_id: int):
+    session: SessionObject
+    with Session() as session:
+        event = session.query(Event).filter(Event.id == event_id).all()
+        if not event:
+            return False
+        event = event[0]
+        session.delete(event)
+
+        session.query(EventRate).filter(EventRate.event_id == event_id).delete()
+        session.query(EventPhoto).filter(EventPhoto.event_id == event_id).delete()
+        session.query(EventSaved).filter(EventSaved.event_id == event_id).delete()
+        session.query(EventComment).filter(EventComment.event_id == event_id).delete()
+
+        session.commit()
+    return True
 
 
 def add_comment(user_id: int, comment: str, event_id: int):

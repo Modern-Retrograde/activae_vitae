@@ -22,8 +22,18 @@
     },
     {
         id: 5,
-        name: "/addEvent POST",
-        description: "Добавление нового мероприятия."
+        name: "/event POST",
+        description: "Добавление мероприятия."
+    },
+    {
+        id: 6,
+        name: "/event DELETE",
+        description: "Удаление мероприятия."
+    },
+    {
+        id: 7,
+        name: "/verify POST",
+        description: "Подтверждение стороннего аккаунта."
     }
 ]),c=
 {
@@ -89,7 +99,7 @@
             }
         }
     },
-    "/addEvent POST": {
+    "/event POST": {
         send: {
             name:"my new event",
             date:"28.01.2022 12:00",
@@ -105,6 +115,22 @@
                 short_description: 'some short description...',
                 name: 'my new event'
             }
+        }
+    },
+    "/event DELETE": {
+        send: {
+            event_id: 1
+        },
+        response: {
+            code: 200
+        }
+    },
+    "/verify POST": {
+        send: {
+            user_id: 1
+        },
+        response: {
+            code: 200
         }
     }
 
