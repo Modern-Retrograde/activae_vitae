@@ -1,7 +1,10 @@
 # Общая конфигурации проекта.
+from random import choice as random_choice
 
 flask_debug = True
-recreate_database = True  # Опасная переменная, от которой зависит целостность всей БД.
+flask_csrf_enabled = True
+
+recreate_database = False  # Опасная переменная, от которой зависит целостность всей БД.
 
 sqlalchemy_arguments = {
     "url": "sqlite:///activae_vitae.db"
@@ -10,6 +13,7 @@ sqlalchemy_arguments = {
 token_len = 64
 token_symbols = "qwertyuiopasdfghjklzxcvbnm_1234567890QWERTYUIOPASDFGHJKLZXCVBNM"
 token_expire_date = 86400
+flask_secret_key = "".join([random_choice(token_symbols) for _ in range(token_len)])
 date_format = "%d.%m.%Y %H:%M"
 
 # Права доступа для зарегистрированных аккаунтов.
@@ -48,6 +52,7 @@ all_roles_in_projects = {
         "edit_own_account": True,
         "get_event_stats": False,
     },
+    # Я тестер, мне всё можно.
     "tester": {
         "verify_accounts": True,  # Подтверждать сторонние аккаунты.
         "create_events": True,  # Создавать события.

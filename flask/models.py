@@ -3,6 +3,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.session import sessionmaker
+from sqlalchemy.orm import relation
 
 from sqlalchemy import Column
 from sqlalchemy import Integer, VARCHAR, Text, TIMESTAMP, Boolean
@@ -67,7 +68,7 @@ class Event(Base):
     description = Column("description", Text, nullable=False)
     event_date = Column("date_of_the_event", TIMESTAMP, nullable=False)
     organizer_id = Column("organizer_id", Integer, nullable=False)
-    event_format = Column("event_format", Integer, nullable=False)
+    event_format = Column("event_format", Text, nullable=False)
 
     __table_args__ = (
         ForeignKeyConstraint(("organizer_id", ), ("users.id", )),
@@ -97,7 +98,10 @@ class EventSaved(Base):
     __tablename__ = "events_saved"
 
     event_id = Column("event_id", Integer, nullable=False)
+    is_saved = Column("is_saved", Boolean, nullable=True)
     user_id = Column("user_id", Integer, nullable=False)
+
+    event = relation(Event)
 
     __table_args__ = (
         ForeignKeyConstraint(("event_id", ), ("events.id", )),
@@ -141,7 +145,7 @@ class EventRate(Base):
     )
 
 
-if recreate_database and __name__ == "__main__":
+if recreate_database:
     print("Recreating whole database...")
     _current_session = Session()
 

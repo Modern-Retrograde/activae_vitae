@@ -6,7 +6,7 @@ from random import choice as random_choice
 from datetime import datetime, timedelta
 
 from configs import token_len, token_symbols, token_expire_date
-from models import Session, User, Token, Event, EventPhoto, EventComment, EventRate
+from models import Session, User, Token, Event, EventPhoto, EventComment, EventRate, EventSaved
 from errors import EmailAlreadyUsedError
 
 
@@ -61,6 +61,10 @@ def create_new_token(user_id: int):
 def user_authenticate(email: str, hash_password: str):
     """
     Аутентификация пользователя. Выдача токена.
+    Выдаётся последний активный токен. Новый не
+    будет создан, пока не истечёт срок действия
+    старого.
+
     None - неверный логин/пароль.
     Возвращает: TokenObject
     """
@@ -69,9 +73,18 @@ def user_authenticate(email: str, hash_password: str):
         query: Query
         query = session.query(User).filter(User.email == email).filter(User.hash_password == hash_password)
         user = query.all()
-        if user:
-            return create_new_token(user[0].id)
-    return None
+        if not user:
+            return None
+        user = user[0]
+
+        active_tokens = session.query(Token).filter(
+            Token.user_id == user.id,
+            Token.expire_date > datetime.now()
+        ).all()
+
+    if active_tokens:
+        return active_tokens[0]
+    return create_new_token(user.id)
 
 
 def user_authorize(key: str):
@@ -112,9 +125,20 @@ def get_events(offset: int, limit: int, search_by: str):
     """Получение списка событий."""
     session: SessionObject
     with Session() as session:
-        query = session.query(Event).filter(Event.name.ilike(f"%{search_by}%"))
+        query: Query
+        query = session.query(
+            Event, EventSaved.is_saved
+        ).filter(Event.name.ilike(f"%{search_by.lower()}%"))
+
+        query = query.join(
+            EventSaved,
+            EventSaved.event_id == Event.id,
+            isouter=True
+        )
+
         query = query.offset(offset)
         query = query.limit(limit)
+        query = query.distinct()
     return query.all()
 
 
@@ -189,6 +213,11 @@ def delete_all_users():
         all_users = session.query(User).all()
         for user in all_users:
             session.delete(user)
+
+        all_tokens = session.query(Token).all()
+        for token in all_tokens:
+            session.delete(token)
+
         session.commit()
     return True
 
