@@ -73,6 +73,7 @@ class EventsResponse(BaseResponse):
                 "id": event.id,
                 "name": event.name,
                 "short_description": event.short_description,
+                "format": event.event_format,
                 "date": event.event_date.strftime(date_format),
                 "is_saved": bool(is_saved)
             })
@@ -93,6 +94,7 @@ class EventResponse(BaseResponse):
             "id": self.event.id,
             "date": self.event.event_date.strftime(date_format),
             "name": self.event.name,
+            "format": self.event.event_format,
             "short_description": self.event.short_description,
             "photos": list(map(lambda x: x.link, self.photos))
         }

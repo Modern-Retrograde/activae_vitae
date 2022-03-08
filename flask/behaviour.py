@@ -181,6 +181,39 @@ def add_event(
     }
 
 
+def edit_event(
+        event_id: int, name: str,
+        short_description: str, description: str,
+        date: datetime, event_format: str,
+        photos: list):
+    session: SessionObject
+    with Session() as session:
+        chosen_event: Event
+        chosen_event = session.query(Event).get(event_id)
+        if not chosen_event:
+            return False
+        if name:
+            chosen_event.name = name
+        if short_description:
+            chosen_event.short_description = short_description
+        if description:
+            chosen_event.description = description
+        if date:
+            chosen_event.event_date = date
+        if event_format:
+            chosen_event.event_format = event_format
+
+        # Перезапись всех фотографий.
+        if photos:
+            session.query(EventPhoto).filter(EventPhoto.event_id == event_id).delete()
+            for photo in photos:
+                event_photo = EventPhoto(event_id=event_id, link=photo)
+                session.add(event_photo)
+
+        session.commit()
+    return True
+
+
 def delete_event(event_id: int):
     session: SessionObject
     with Session() as session:
@@ -252,3 +285,24 @@ def get_all_users():
     with Session() as session:
         all_users = session.query(User).all()
     return all_users
+
+
+def initialize():
+    from configs import director_account
+    from sqlalchemy.exc import OperationalError
+
+    session: SessionObject
+    with Session() as session:
+        try:
+            admin: User
+            admin = session.query(User).get(1)
+            if admin:
+                return True
+            admin = user_registration(**director_account)
+        except OperationalError:
+            print("Set recreate_database into True.\nDB possibly not configured.")
+            return False
+
+        if not admin:
+            return False
+    return True

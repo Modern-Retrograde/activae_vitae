@@ -1,5 +1,6 @@
 # Общая конфигурации проекта.
 from random import choice as random_choice
+from hashlib import md5
 
 flask_debug = True
 flask_csrf_enabled = True
@@ -15,6 +16,14 @@ token_symbols = "qwertyuiopasdfghjklzxcvbnm_1234567890QWERTYUIOPASDFGHJKLZXCVBNM
 token_expire_date = 86400
 flask_secret_key = "".join([random_choice(token_symbols) for _ in range(token_len)])
 date_format = "%d.%m.%Y %H:%M"
+
+director_account = {
+    "email": "testMe@gmail.com",
+    "verified": True,
+    "hash_password": md5(b"MyPass!For Example").hexdigest(),
+    "full_name": "No name",
+    "role": "director"
+}
 
 # Права доступа для зарегистрированных аккаунтов.
 all_roles_in_projects = {

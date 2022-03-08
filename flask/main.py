@@ -67,8 +67,6 @@ def need_access(right_to_check: str):
             if not all_roles_in_projects[user.role][right_to_check]:
                 return api.ErrorResponse(403, "You have no rights").__dict__()
 
-            print(user.role)
-
             return func(*args, **kwargs)
         return wrap
     return functionality
@@ -77,7 +75,7 @@ def need_access(right_to_check: str):
 def check_params(needed_params: list):
     def functionality(func):
         def wrap(*args, **kwargs):
-            if not all(map(lambda x: x in needed_params, request.values.keys())):
+            if not all(map(lambda x: x in request.values, needed_params)):
                 return api.OneOrMoreParamsMissedError().__dict__()
             if not all(map(lambda x: bool(request.values[x]), needed_params)):
                 return api.OneOrMoreParamsMissedError().__dict__()
@@ -102,7 +100,7 @@ def is_correct_date(date: str):
         return False
 
 
-def get_value(key: str, default, check_func):
+def get_value(key: str, default, check_func=lambda x: x):
     """
     Проверяет request, соответствует ли key установленной функции.
     Если да, то возвращает значение, иначе отдаёт default.
@@ -110,6 +108,7 @@ def get_value(key: str, default, check_func):
     return request.values.get(key) if check_func(request.values.get(key)) else default
 
 
+@check_params(["id", ])
 def get_event():
     event_id = get_value("id", -1, is_num)
 
@@ -122,15 +121,15 @@ def get_event():
 
 @need_access("create_events")
 @check_params(
-    ["name", "short_description", "event_date",
-     "event_format", "photos", "description"]
+    ["name", "short_description", "date",
+     "format", "photos", "description"]
 )
 def add_event():
     user: User
     user = authorize(session.get("token"))
     this_request = request.values
 
-    event_date = is_correct_date(this_request["event_date"])
+    event_date = is_correct_date(this_request["date"])
     if not event_date:
         return api.WrongDateEntered().__dict__()
     if len(this_request["name"]) >= 50:
@@ -141,7 +140,7 @@ def add_event():
         short_description=this_request["short_description"],
         description=this_request["description"],
         event_date=event_date, organizer_id=user.id,
-        event_format=this_request["event_format"],
+        event_format=this_request["format"],
         photos=this_request["photos"].split(",")
     )
     if not new_event:
@@ -163,6 +162,39 @@ def del_event():
     return api.SuccessResponse().__dict__()
 
 
+@need_access("edit_events")
+@check_params(["id", ])
+def edit_event():
+    event_id = get_value("id", None, is_num)
+    if not event_id:
+        return api.ErrorResponse(400, "id must be num").__dict__()
+    event_id = int(event_id)
+    params_list = [
+        "name", "short_description", "description",
+        "date", "format", "photos"
+    ]
+    params = dict()
+    for param in params_list:
+        params[param] = get_value(param, None)
+
+    if params["photos"]:
+        params["photos"] = list(map(lambda x: x.strip(), params["photos"].split(",")))
+    if params["date"]:
+        params["date"] = is_correct_date(params["date"])
+        if params["date"] is False:
+            return api.ErrorResponse(400, "date in wrong format").__dict__()
+
+    params["event_format"] = get_value("format", None)
+    del params["format"]
+
+    success = behaviour.edit_event(event_id=event_id, **params)
+
+    if not success:
+        return api.NotFound().__dict__()
+
+    return api.SuccessResponse().__dict__()
+
+
 @app.route("/events", methods=["GET"])
 def index():
     query = get_value("query", "", lambda x: bool(x))
@@ -175,7 +207,7 @@ def index():
     return api.EventsResponse(events).__dict__()
 
 
-@app.route("/event", methods=["GET", "POST", "DELETE"])
+@app.route("/event", methods=["GET", "POST", "DELETE", "PATCH"])
 def event_path():
     if request.method == "GET":
         return get_event()
@@ -183,6 +215,8 @@ def event_path():
         return add_event()
     elif request.method == "DELETE":
         return del_event()
+    elif request.method == "PATCH":
+        return edit_event()
 
 
 @app.route("/login", methods=["POST"])
@@ -223,3 +257,10 @@ def account_verify():
     if not success:
         return api.NotFound().__dict__()
     return api.SuccessResponse().__dict__()
+
+
+@app.before_first_request
+def initializing():
+    if not behaviour.initialize():
+        print("Initializing failed.")
+        exit(-1)

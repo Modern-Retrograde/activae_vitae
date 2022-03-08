@@ -26,6 +26,11 @@
         description: "Добавление мероприятия."
     },
     {
+        id: 8,
+        name: "/event PATCH",
+        description: "Внесение изменений в мероприятие. Обязателен только параметр id. Остальные необязательные."
+    },
+    {
         id: 6,
         name: "/event DELETE",
         description: "Удаление мероприятия."
@@ -94,6 +99,7 @@
                 id: 1,
                 date:"27.01.2022 12:00",
                 name: "my event",
+                format: "Очно",
                 description:"my full description for this thing...",
                 photos:["https://imgur.com/333E","https://imgur.com/FFf54"]
             }
@@ -105,6 +111,7 @@
             date:"28.01.2022 12:00",
             description: "full description of this thing...",
             short_description:"some short description...",
+            format: "Очно",
             photos: "https://i.stack.imgur.com/1UKp7.png,https://www.dofactory.com/img/sql/sql-outer-joins.png"
         },
         response: {
@@ -115,6 +122,20 @@
                 short_description: 'some short description...',
                 name: 'my new event'
             }
+        }
+    },
+    "/event PATCH": {
+        send: {
+            id: 1,
+            name: "My new name",
+            short_description: "Some new short text",
+            description: "Some new looong text",
+            date: "10.03.2022 12:00",
+            format: "Весёлый дистанционный",
+            photos: "https://i.stack.imgur.com/1UKp7.png"
+        },
+        response: {
+            code: 200
         }
     },
     "/event DELETE": {
