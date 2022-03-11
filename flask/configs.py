@@ -38,6 +38,9 @@ all_roles_in_projects = {
         "edit_account_roles": True,  # Изменение роли любому аккаунту.
         "edit_own_account": True,  # Редактирование своего же аккаунта.
         "get_event_stats": True,  # Получение статистики о мероприятии.
+        "get_accounts_info": True,  # Получение сторонних аккаунтов.
+        "add_comments": True,  # Комментирование мероприятий.
+        "delete_comments": True,  # Удаление комментариев мероприятий.
     },
     # Учитель-организатор.
     "teacher": {
@@ -49,6 +52,9 @@ all_roles_in_projects = {
         "edit_account_roles": False,
         "edit_own_account": True,
         "get_event_stats": False,
+        "get_accounts_info": False,
+        "add_comments": True,
+        "delete_comments": True,
     },
     # Ученик.
     "student": {
@@ -60,16 +66,22 @@ all_roles_in_projects = {
         "edit_account_roles": False,
         "edit_own_account": True,
         "get_event_stats": False,
+        "get_accounts_info": False,
+        "add_comments": True,
+        "delete_comments": False,
     },
     # Я тестер, мне всё можно.
     "tester": {
-        "verify_accounts": True,  # Подтверждать сторонние аккаунты.
-        "create_events": True,  # Создавать события.
-        "edit_events": True,  # Редактировать события.
-        "delete_events": True,  # Удалять любые события.
-        "delete_own_events": True,  # Удалять свои мероприятия.
-        "edit_account_roles": True,  # Изменение роли любому аккаунту.
-        "edit_own_account": True,  # Редактирование своего же аккаунта.
-        "get_event_stats": True,  # Получение статистики о мероприятии.
+        "verify_accounts": True,
+        "create_events": True,
+        "edit_events": True,
+        "delete_events": True,
+        "delete_own_events": True,
+        "edit_account_roles": True,
+        "edit_own_account": True,
+        "get_event_stats": True,
+        "get_accounts_info": False,
+        "add_comments": True,
+        "delete_comments": True,
     }
 }

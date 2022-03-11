@@ -1,4 +1,4 @@
-from models import Event
+from models import Event, EventComment
 from configs import date_format
 
 
@@ -24,9 +24,19 @@ class NotFound(BaseResponse):
         super(NotFound, self).__init__(404)
 
 
+class RoleNotFound(ErrorResponse):
+    def __init__(self, role: str):
+        super(RoleNotFound, self).__init__(404, f"Role '{role}' not found.")
+
+
 class SuccessResponse(BaseResponse):
     def __init__(self, **kwargs):
         super(SuccessResponse, self).__init__(200, **kwargs)
+
+
+class BusyEmailError(ErrorResponse):
+    def __init__(self):
+        super(BusyEmailError, self).__init__(400, "This email is busy.")
 
 
 class OneOrMoreParamsMissedError(ErrorResponse):
@@ -57,6 +67,11 @@ class RegistrationError(ErrorResponse):
 class Unauthorized(ErrorResponse):
     def __init__(self):
         super(Unauthorized, self).__init__(401, "Unauthorized")
+
+
+class ParamMustBeNum(ErrorResponse):
+    def __init__(self, param_name: str):
+        super(ParamMustBeNum, self).__init__(400, f"'{param_name}' param must be num.")
 
 
 class EventsResponse(BaseResponse):
@@ -99,4 +114,65 @@ class EventResponse(BaseResponse):
             "photos": list(map(lambda x: x.link, self.photos))
         }
         response["event"] = event
+        return response
+
+
+class UserResponse(BaseResponse):
+    def __init__(self, user):
+        super(UserResponse, self).__init__(200)
+        self.user = user
+
+    def __dict__(self):
+        response = super(UserResponse, self).__dict__()
+        user = {
+            "id": self.user.id,
+            "role": self.user.role,
+            "verified": self.user.verified,
+            "email": self.user.email,
+            "full_name": self.user.full_name,
+        }
+        response["user"] = user
+        return response
+
+
+class UsersResponse(BaseResponse):
+    def __init__(self, users: list):
+        super(UsersResponse, self).__init__(200)
+        self.users = users
+
+    def __dict__(self):
+        response = super(UsersResponse, self).__dict__()
+        users = [
+            {
+                "id": user.id,
+                "role": user.role,
+                "verified": user.verified,
+                "email": user.email,
+                "full_name": user.full_name,
+            }
+            for user in self.users
+        ]
+        response["users"] = users
+        return response
+
+
+class CommentsResponse(BaseResponse):
+    def __init__(self, comments: list):
+        super(CommentsResponse, self).__init__(200)
+        self.comments = comments
+
+    def __dict__(self):
+        response = super(CommentsResponse, self).__dict__()
+        comment: EventComment
+        comments = [
+            {
+                "id": comment.id,
+                "event_id": comment.event_id,
+                "text": comment.text,
+                "user_id": comment.user_id
+            }
+            for comment in self.comments
+        ]
+        response["comments"] = comments
+
         return response

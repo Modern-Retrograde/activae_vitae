@@ -149,11 +149,11 @@ def add_event():
 
 
 @need_access("delete_events")
-@check_params(["event_id"])
+@check_params(["id"])
 def del_event():
-    event_id = get_value("event_id", None, is_num)
+    event_id = get_value("id", None, is_num)
     if not event_id:
-        return api.ErrorResponse(400, "event_id must be num")
+        return api.ErrorResponse(400, "id must be num")
     event_id = int(event_id)
 
     success = behaviour.delete_event(event_id)
@@ -168,6 +168,7 @@ def edit_event():
     event_id = get_value("id", None, is_num)
     if not event_id:
         return api.ErrorResponse(400, "id must be num").__dict__()
+
     event_id = int(event_id)
     params_list = [
         "name", "short_description", "description",
@@ -195,6 +196,51 @@ def edit_event():
     return api.SuccessResponse().__dict__()
 
 
+@check_params(["event_id", ])
+def get_comments():
+    event_id = get_value("event_id", None, is_num)
+    if not event_id:
+        return api.ParamMustBeNum("event_id").__dict__()
+    event_id = int(event_id)
+
+    comments = behaviour.get_comments(event_id)
+
+    return api.CommentsResponse(comments).__dict__()
+
+
+@need_access("add_comments")
+@check_params(["event_id", "text"])
+def add_comment():
+    event_id = get_value("event_id", None, is_num)
+    text = get_value("text", None)
+    if not event_id:
+        return api.ParamMustBeNum("event_id").__dict__()
+    event_id = int(event_id)
+
+    user: User
+    user = authorize(session.get("token"))
+    user_id = user.id
+    success = behaviour.add_comment(user_id, text, event_id)
+    if not success:
+        return api.NotFound().__dict__()
+
+    return api.SuccessResponse().__dict__()
+
+
+@need_access("delete_comments")
+@check_params(["id", ])
+def delete_comment():
+    comment_id = get_value("id", None, is_num)
+    if not comment_id:
+        return api.ParamMustBeNum("id")
+    comment_id = int(comment_id)
+
+    success = behaviour.delete_comment(comment_id)
+    if not success:
+        return api.NotFound().__dict__()
+    return api.SuccessResponse().__dict__()
+
+
 @app.route("/events", methods=["GET"])
 def index():
     query = get_value("query", "", lambda x: bool(x))
@@ -217,6 +263,16 @@ def event_path():
         return del_event()
     elif request.method == "PATCH":
         return edit_event()
+
+
+@app.route("/comments", methods=["GET", "POST", "DELETE"])
+def comments_path():
+    if request.method == "GET":
+        return get_comments()
+    elif request.method == "POST":
+        return add_comment()
+    elif request.method == "DELETE":
+        return delete_comment()
 
 
 @app.route("/login", methods=["POST"])
@@ -250,13 +306,74 @@ def account_register():
 def account_verify():
     user_id = get_value("user_id", None, is_num)
     if not user_id:
-        return api.NotFound()
+        return api.NotFound().__dict__()
     user_id = int(user_id)
 
     success = behaviour.verify_account(user_id)
     if not success:
         return api.NotFound().__dict__()
     return api.SuccessResponse().__dict__()
+
+
+@app.route("/accounts", methods=["GET"], endpoint="accounts")
+@need_access("get_accounts_info")
+@check_params(["limit", "offset"])
+def accounts():
+    limit = get_value("limit", None, is_num)
+    offset = get_value("offset", None, is_num)
+    print("I am here!")
+    if not limit:
+        return api.ParamMustBeNum("limit").__dict__()
+    if not offset:
+        return api.ParamMustBeNum("offset").__dict__()
+
+    limit = int(limit)
+    offset = int(offset)
+    accounts_list = behaviour.get_users(limit, offset)
+    print(accounts_list)
+    if not accounts_list:
+        return api.NotFound().__dict__()
+    return api.UsersResponse(accounts_list).__dict__()
+
+
+@app.route("/own_account", methods=["PATCH"], endpoint="account")
+@need_access("edit_own_account")
+def correct_own_account():
+    role = get_value("role", None)
+    full_name = get_value("full_name", None)
+    email = get_value("email", None)
+
+    user: User
+    user = authorize(session.get("token"))
+    if not user:
+        return api.Unauthorized().__dict__()
+    if role:
+        if role not in all_roles_in_projects:
+            return api.RoleNotFound(role).__dict__()
+
+    user_id = user.id
+
+    success = behaviour.edit_user(user_id, role, email, full_name)
+    if not success:
+        return api.BusyEmailError().__dict__()
+    return api.SuccessResponse().__dict__()
+
+
+@app.route("/account", methods=["PATCH"], endpoint="correct_another_account")
+@need_access("edit_account_roles")
+@check_params(["user_id", "role"])
+def correct_another_account():
+    role = get_value("role", None)
+    if role not in all_roles_in_projects:
+        return api.RoleNotFound(role).__dict__()
+    user_id = get_value("user_id", None, is_num)
+    if not user_id:
+        return api.ParamMustBeNum("user_id").__dict__()
+    user_id = int(user_id)
+
+    success = behaviour.edit_user(user_id, role, None, None)
+
+    return api.BaseResponse(200 if success else 400).__dict__()
 
 
 @app.before_first_request

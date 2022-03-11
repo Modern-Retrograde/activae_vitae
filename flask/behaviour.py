@@ -104,7 +104,6 @@ def user_authorize(key: str):
         if not user:
             return False
         user = user[0]
-
     return user
 
 
@@ -186,6 +185,11 @@ def edit_event(
         short_description: str, description: str,
         date: datetime, event_format: str,
         photos: list):
+    """
+    Редактирует уже существующее событие.
+
+    Введённые данные перезаписываются поверх.
+    """
     session: SessionObject
     with Session() as session:
         chosen_event: Event
@@ -242,9 +246,31 @@ def add_comment(user_id: int, comment: str, event_id: int):
     )
 
     with Session() as session:
+        event = session.query(Event).get(event_id)
+        if not event:
+            return False
         session.add(users_comment)
         session.commit()
     return True
+
+
+def delete_comment(comment_id: int):
+    session: SessionObject
+    with Session() as session:
+        query = session.query(EventComment).filter(EventComment.id == comment_id)
+        if not query.all():
+            return False
+        query.delete()
+        session.commit()
+    return True
+
+
+def get_comments(event_id: int):
+    session: SessionObject
+    with Session() as session:
+        comments = session.query(EventComment).filter(EventComment.event_id == event_id)
+        comments = comments.all()
+    return comments
 
 
 def set_rate(event_id: int, user_id: int, rating: int):
@@ -276,6 +302,31 @@ def delete_all_users():
         for token in all_tokens:
             session.delete(token)
 
+        session.commit()
+    return True
+
+
+def get_users(limit: int, offset: int):
+    """Поиск пользователя по его ID"""
+    session: SessionObject
+    with Session() as session:
+        users = session.query(User).limit(limit).offset(offset).all()
+        print("292 behaviour", users)
+    return users
+
+
+def edit_user(user_id: int, role: str = None, email: str = None, full_name: str = None):
+    session: SessionObject
+    with Session() as session:
+        user = session.query(User).get(user_id)
+        if role:
+            user.role = role
+        if email:
+            if session.query(User).filter(User.email == email).all():
+                return False
+            user.email = email
+        if full_name:
+            user.full_name = full_name
         session.commit()
     return True
 

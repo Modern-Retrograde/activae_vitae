@@ -26,19 +26,49 @@
         description: "Добавление мероприятия."
     },
     {
-        id: 8,
+        id: 6,
         name: "/event PATCH",
         description: "Внесение изменений в мероприятие. Обязателен только параметр id. Остальные необязательные."
     },
     {
-        id: 6,
+        id: 7,
         name: "/event DELETE",
         description: "Удаление мероприятия."
     },
     {
-        id: 7,
+        id: 8,
         name: "/verify POST",
         description: "Подтверждение стороннего аккаунта."
+    },
+    {
+        id: 9,
+        name: "/accounts GET",
+        description: "Получение списка аккаунтов с рядом характеристик. offset - это смещение от начала списка; limit - максимальное количество объектов."
+    },
+    {
+        id: 10,
+        name: "/own_account PATCH",
+        description: "Внесение изменений в профиль аккаунта."
+    },
+    {
+        id: 11,
+        name: "/account PATCH",
+        description: "Внесение роли пользователя в системе."
+    },
+    {
+        id: 12,
+        name: "/comments GET",
+        description: "Получение всех комментариев в системе."
+    },
+    {
+        id: 13,
+        name: "/comments POST",
+        description: "Написание комментария."
+    },
+    {
+        id: 14,
+        name: "/comments DELETE",
+        description: "Удаление комментария."
     }
 ]),c=
 {
@@ -140,7 +170,7 @@
     },
     "/event DELETE": {
         send: {
-            event_id: 1
+            id: 1
         },
         response: {
             code: 200
@@ -149,6 +179,76 @@
     "/verify POST": {
         send: {
             user_id: 1
+        },
+        response: {
+            code: 200
+        }
+    },
+    "/accounts GET": {
+        send: {
+            limit: 10,
+            offset: 0
+        },
+        response: {
+            code: 200,
+            users: [
+                {
+                    id: 1,
+                    role: "director",
+                    verified: !1,
+                    email: "testMe@gmail.com",
+                    full_name: "Testing Test"
+                }
+            ]
+        }
+    },
+    "/own_account PATCH": {
+        send: {
+            role: "My new role",
+            email: "testMe@gmail.com",
+            full_name: "My New Brand Full Name"
+        },
+        response: {
+            code: 200
+        }
+    },
+    "/account PATCH": {
+        send: {
+            user_id: 1,
+            role: "director"
+        },
+        response: {
+            code: 200
+        }
+    },
+    "/comments GET": {
+        send: {
+            event_id: 1
+        },
+        response: {
+            code: 200,
+            comments: [
+                {
+                    id: 133,
+                    event_id: 1,
+                    text: "Какое счастье иметь такое мероприятие!",
+                    user_id: 1
+                },
+            ]
+        }
+    },
+    "/comments POST": {
+        send: {
+            event_id: 1,
+            text: "Какое счастье иметь такое мероприятие!"
+        },
+        response: {
+            code: 200
+        }
+    },
+    "/comments DELETE": {
+        send: {
+            id: 133
         },
         response: {
             code: 200
