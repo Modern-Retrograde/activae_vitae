@@ -14,9 +14,6 @@ export default {
 </script>
 
 <style lang="css">
-body{
-    max-width: 1500px;
-}
 .container{
   display: flex;
   flex-direction: column;
