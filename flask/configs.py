@@ -46,6 +46,8 @@ all_roles_in_projects = {
         "get_accounts_info": True,  # Получение сторонних аккаунтов.
         "add_comments": True,  # Комментирование мероприятий.
         "delete_comments": True,  # Удаление комментариев мероприятий.
+        "event_save": True,  # Сохранение мероприятий.
+        "event_rate": True,  # Регистрация на мероприятия.
     },
     # Учитель-организатор.
     "teacher": {
@@ -60,6 +62,8 @@ all_roles_in_projects = {
         "get_accounts_info": False,
         "add_comments": True,
         "delete_comments": True,
+        "event_save": True,
+        "event_rate": True,
     },
     # Ученик.
     "student": {
@@ -74,6 +78,8 @@ all_roles_in_projects = {
         "get_accounts_info": False,
         "add_comments": True,
         "delete_comments": False,
+        "event_save": True,
+        "event_rate": True,
     },
     # Я тестер, мне всё можно.
     "tester": {
@@ -88,5 +94,7 @@ all_roles_in_projects = {
         "get_accounts_info": False,
         "add_comments": True,
         "delete_comments": True,
+        "event_save": True,
+        "event_rate": True,
     }
 }
