@@ -133,7 +133,7 @@ def add_event():
     if not event_date:
         return api.WrongDateEntered().__dict__()
     if len(this_request["name"]) >= 50:
-        return api.TooLongEventName(50)
+        return api.TooLongEventName(50).__dict__()
 
     new_event = behaviour.add_event(
         name=this_request["name"],
@@ -153,7 +153,7 @@ def add_event():
 def del_event():
     event_id = get_value("id", None, is_num)
     if not event_id:
-        return api.ErrorResponse(400, "id must be num")
+        return api.ErrorResponse(400, "id must be num").__dict__()
     event_id = int(event_id)
 
     success = behaviour.delete_event(event_id)
@@ -232,7 +232,7 @@ def add_comment():
 def delete_comment():
     comment_id = get_value("id", None, is_num)
     if not comment_id:
-        return api.ParamMustBeNum("id")
+        return api.ParamMustBeNum("id").__dict__()
     comment_id = int(comment_id)
 
     success = behaviour.delete_comment(comment_id)
@@ -376,7 +376,7 @@ def correct_another_account():
     return api.BaseResponse(200 if success else 400).__dict__()
 
 
-@app.route("/event/save", methods=["POST", "DELETE"], endpoint="")
+@app.route("/event/save", methods=["POST", "DELETE"], endpoint="saving_event")
 @need_access("event_save")
 @check_params(["id", ])
 def saving_event():
@@ -386,7 +386,7 @@ def saving_event():
     event_id = get_value("id", None, is_num)
 
     if not event_id:
-        return api.ParamMustBeNum("id")
+        return api.ParamMustBeNum("id").__dict__()
     event_id = int(event_id)
 
     if request.method == "POST":
@@ -403,6 +403,30 @@ def saving_event():
             success = api.SuccessResponse()
 
     return success.__dict__()
+
+
+@app.route("/event/rate", methods=["PUT"], endpoint="rating_event")
+@need_access("event_rate")
+@check_params(["id", "rate"])
+def rating_event():
+    user: User
+    user = authorize(session.get("token"))
+    user_id = user.id
+
+    event_id = get_value("id", None, is_num)
+    rate = get_value("rate", None, is_num)
+
+    if not event_id:
+        return api.ParamMustBeNum("id").__dict__()
+    if not rate:
+        return api.ParamMustBeNum("rate").__dict__()
+    event_id = int(event_id)
+    rate = int(rate)
+
+    success = behaviour.set_rate(event_id=event_id, user_id=user_id, rating=rate)
+    if not success:
+        return api.NotFound().__dict__()
+    return api.SuccessResponse().__dict__()
 
 
 @app.before_first_request

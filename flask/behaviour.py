@@ -237,6 +237,7 @@ def delete_event(event_id: int):
 
 
 def save_event(event_id: int, user_id: int):
+    """Сохранение мероприятия."""
     session: SessionObject
     with Session() as session:
         event = session.query(Event).get(event_id)
@@ -254,6 +255,7 @@ def save_event(event_id: int, user_id: int):
             )
             session.add(event_saved)
         else:
+            event_saved = event_saved[0]
             event_saved.is_saved = True
         session.commit()
 
@@ -261,6 +263,7 @@ def save_event(event_id: int, user_id: int):
 
 
 def delete_saved_event(event_id: int, user_id: int):
+    """Удаление мероприятия из сохранённых."""
     session: SessionObject
     with Session() as session:
         event_saved = session.query(EventSaved).filter(
@@ -317,6 +320,9 @@ def set_rate(event_id: int, user_id: int, rating: int):
 
     session: SessionObject
     with Session() as session:
+        event = session.query(Event).get(event_id)
+        if not event:
+            return False
         query = session.query(EventRate).filter(EventRate.event_id == event_id)
         query = query.filter(EventRate.user_id == user_id)
         if not query.all():
