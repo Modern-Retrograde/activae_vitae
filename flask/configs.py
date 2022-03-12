@@ -1,6 +1,7 @@
 # Общая конфигурации проекта.
 from random import choice as random_choice
 from hashlib import md5
+from os import environ
 
 flask_debug = True
 flask_csrf_enabled = True
@@ -10,6 +11,10 @@ recreate_database = False  # Опасная переменная, от кото�
 sqlalchemy_arguments = {
     "url": "sqlite:///activae_vitae.db"
 }
+
+if environ.get("DB_URL"):
+    sqlalchemy_arguments["url"] = environ.get("DB_URL")
+    print("Connecting to the Database...")
 
 token_len = 64
 token_symbols = "qwertyuiopasdfghjklzxcvbnm_1234567890QWERTYUIOPASDFGHJKLZXCVBNM"
