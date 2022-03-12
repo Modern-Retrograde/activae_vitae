@@ -236,6 +236,44 @@ def delete_event(event_id: int):
     return True
 
 
+def save_event(event_id: int, user_id: int):
+    session: SessionObject
+    with Session() as session:
+        event = session.query(Event).get(event_id)
+        if not event:
+            return False
+        event_saved = session.query(EventSaved).filter(
+            EventSaved.event_id == event_id,
+            EventSaved.user_id == user_id,
+        ).all()
+        if not event_saved:
+            event_saved = EventSaved(
+                event_id=event_id,
+                user_id=user_id,
+                is_saved=True
+            )
+            session.add(event_saved)
+        else:
+            event_saved.is_saved = True
+        session.commit()
+
+    return True
+
+
+def delete_saved_event(event_id: int, user_id: int):
+    session: SessionObject
+    with Session() as session:
+        event_saved = session.query(EventSaved).filter(
+            EventSaved.event_id == event_id,
+            EventSaved.user_id == user_id
+        ).all()
+        if not event_saved:
+            return False
+        session.delete(event_saved[0])
+        session.commit()
+    return True
+
+
 def add_comment(user_id: int, comment: str, event_id: int):
     """Добавление комментария."""
     session: SessionObject
