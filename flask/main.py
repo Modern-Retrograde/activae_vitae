@@ -420,8 +420,10 @@ def rating_event():
         return api.ParamMustBeNum("id").__dict__()
     if not rate:
         return api.ParamMustBeNum("rate").__dict__()
-    event_id = int(event_id)
     rate = int(rate)
+    if not -1 <= rate <= 1:
+        return api.ErrorResponse(400, "'rate' should be from -1 to 1. ")
+    event_id = int(event_id)
 
     success = behaviour.set_rate(event_id=event_id, user_id=user_id, rating=rate)
     if not success:
