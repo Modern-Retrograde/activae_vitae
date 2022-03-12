@@ -36,37 +36,47 @@
         description: "Удаление мероприятия."
     },
     {
-        id: 8,
+        id: 9,
+        name: "/event/save POST",
+        description: "Сохранение определённого мероприятия."
+    },
+    {
+       id: 10,
+       name: "/event/save DELETE",
+       description: "Убирает из сохранённых мероприятий."
+    },
+    {
+        id: 11,
         name: "/verify POST",
         description: "Подтверждение стороннего аккаунта."
     },
     {
-        id: 9,
+        id: 12,
         name: "/accounts GET",
         description: "Получение списка аккаунтов с рядом характеристик. offset - это смещение от начала списка; limit - максимальное количество объектов."
     },
     {
-        id: 10,
+        id: 13,
         name: "/own_account PATCH",
         description: "Внесение изменений в профиль аккаунта."
     },
     {
-        id: 11,
+        id: 14,
         name: "/account PATCH",
         description: "Внесение роли пользователя в системе."
     },
     {
-        id: 12,
+        id: 15,
         name: "/comments GET",
         description: "Получение всех комментариев в системе."
     },
     {
-        id: 13,
+        id: 16,
         name: "/comments POST",
         description: "Написание комментария."
     },
     {
-        id: 14,
+        id: 17,
         name: "/comments DELETE",
         description: "Удаление комментария."
     }
@@ -169,6 +179,22 @@
         }
     },
     "/event DELETE": {
+        send: {
+            id: 1
+        },
+        response: {
+            code: 200
+        }
+    },
+    "/event/save POST": {
+        send: {
+            id: 1
+        },
+        response: {
+            code: 200
+        }
+    },
+    "/event/save DELETE": {
         send: {
             id: 1
         },

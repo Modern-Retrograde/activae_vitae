@@ -376,6 +376,35 @@ def correct_another_account():
     return api.BaseResponse(200 if success else 400).__dict__()
 
 
+@app.route("/event/save", methods=["POST", "DELETE"], endpoint="")
+@need_access("event_save")
+@check_params(["id", ])
+def saving_event():
+    user: User
+    user = authorize(session.get("token"))
+    user_id = user.id
+    event_id = get_value("id", None, is_num)
+
+    if not event_id:
+        return api.ParamMustBeNum("id")
+    event_id = int(event_id)
+
+    if request.method == "POST":
+        success = behaviour.save_event(event_id, user_id)
+        if not success:
+            success = api.NotFound()
+        else:
+            success = api.SuccessResponse()
+    else:
+        success = behaviour.delete_saved_event(event_id, user_id)
+        if not success:
+            success = api.ErrorResponse(404, "event not saved")
+        else:
+            success = api.SuccessResponse()
+
+    return success.__dict__()
+
+
 @app.before_first_request
 def initializing():
     if not behaviour.initialize():
