@@ -2,6 +2,7 @@
 
 from flask import Flask
 from flask import request, session
+from flask_cors import CORS, cross_origin
 from hashlib import md5
 from datetime import datetime
 
@@ -13,6 +14,7 @@ import api
 import behaviour
 
 app = Flask(__name__)
+cors = CORS(app)
 
 
 def make_hash_password(password: str):
@@ -242,6 +244,7 @@ def delete_comment():
 
 
 @app.route("/events", methods=["GET"])
+@cross_origin()
 def index():
     query = get_value("query", "", lambda x: bool(x))
     offset = get_value("offset", 0, is_num)
@@ -254,6 +257,7 @@ def index():
 
 
 @app.route("/event", methods=["GET", "POST", "DELETE", "PATCH"])
+@cross_origin()
 def event_path():
     if request.method == "GET":
         return get_event()
@@ -266,6 +270,7 @@ def event_path():
 
 
 @app.route("/comments", methods=["GET", "POST", "DELETE"])
+@cross_origin()
 def comments_path():
     if request.method == "GET":
         return get_comments()
@@ -276,6 +281,7 @@ def comments_path():
 
 
 @app.route("/login", methods=["POST"])
+@cross_origin()
 @check_params(["hash_password", "email"])
 def login():
     this_request = dict(request.values)
@@ -286,6 +292,7 @@ def login():
 
 
 @app.route('/register', methods=["POST"], endpoint="account_register")
+@cross_origin()
 @check_params(["email", "password", "role", "full_name"])
 def account_register():
     this_request = dict(request.values)
@@ -301,6 +308,7 @@ def account_register():
 
 
 @app.route("/verify", methods=["POST"], endpoint="account_verify")
+@cross_origin()
 @need_access("verify_accounts")
 @check_params(["user_id"])
 def account_verify():
@@ -316,6 +324,7 @@ def account_verify():
 
 
 @app.route("/accounts", methods=["GET"], endpoint="accounts")
+@cross_origin()
 @need_access("get_accounts_info")
 @check_params(["limit", "offset"])
 def accounts():
@@ -337,6 +346,7 @@ def accounts():
 
 
 @app.route("/own_account", methods=["PATCH"], endpoint="account")
+@cross_origin()
 @need_access("edit_own_account")
 def correct_own_account():
     role = get_value("role", None)
@@ -360,6 +370,7 @@ def correct_own_account():
 
 
 @app.route("/account", methods=["PATCH"], endpoint="correct_another_account")
+@cross_origin()
 @need_access("edit_account_roles")
 @check_params(["user_id", "role"])
 def correct_another_account():
@@ -377,6 +388,7 @@ def correct_another_account():
 
 
 @app.route("/event/save", methods=["POST", "DELETE"], endpoint="saving_event")
+@cross_origin()
 @need_access("event_save")
 @check_params(["id", ])
 def saving_event():
@@ -406,6 +418,7 @@ def saving_event():
 
 
 @app.route("/event/rate", methods=["PUT"], endpoint="rating_event")
+@cross_origin()
 @need_access("event_rate")
 @check_params(["id", "rate"])
 def rating_event():
@@ -422,7 +435,7 @@ def rating_event():
         return api.ParamMustBeNum("rate").__dict__()
     rate = int(rate)
     if not -1 <= rate <= 1:
-        return api.ErrorResponse(400, "'rate' should be from -1 to 1. ")
+        return api.ErrorResponse(400, "'rate' should be from -1 to 1. ").__dict__()
     event_id = int(event_id)
 
     success = behaviour.set_rate(event_id=event_id, user_id=user_id, rating=rate)
