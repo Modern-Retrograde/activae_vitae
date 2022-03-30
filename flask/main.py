@@ -89,6 +89,9 @@ def check_params(needed_params: list):
 
 def is_num(text: str):
     try:
+        if not text:
+            return False
+
         int(text)
         return True
     except ValueError:
