@@ -40,8 +40,12 @@ class BusyEmailError(ErrorResponse):
 
 
 class OneOrMoreParamsMissedError(ErrorResponse):
-    def __init__(self):
-        super(OneOrMoreParamsMissedError, self).__init__(400, "One or more params are missed")
+    def __init__(self, missed_params: list = None):
+        if missed_params:
+            text = "Missed params: " + ", ".join(map(lambda x: f"'{x}'", missed_params))
+        else:
+            text = "One or more params are missed."
+        super(OneOrMoreParamsMissedError, self).__init__(400, text)
 
 
 class WrongDateEntered(ErrorResponse):

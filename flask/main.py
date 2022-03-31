@@ -78,9 +78,11 @@ def check_params(needed_params: list):
     def functionality(func):
         def wrap(*args, **kwargs):
             if not all(map(lambda x: x in request.values, needed_params)):
-                return api.OneOrMoreParamsMissedError().__dict__()
+                missed_params = list(set(needed_params) - set(request.values))
+                return api.OneOrMoreParamsMissedError(missed_params).__dict__()
             if not all(map(lambda x: bool(request.values[x]), needed_params)):
-                return api.OneOrMoreParamsMissedError().__dict__()
+                missed_params = list(set(needed_params) - set(request.values))
+                return api.OneOrMoreParamsMissedError(missed_params).__dict__()
 
             return func(*args, **kwargs)
         return wrap
