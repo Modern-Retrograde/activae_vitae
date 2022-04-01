@@ -5,6 +5,7 @@ from flask import request, session
 from flask_cors import CORS, cross_origin
 from hashlib import md5
 from datetime import datetime
+from json import loads as json_loads
 
 from configs import date_format, all_roles_in_projects
 from errors import UserErrors
@@ -78,10 +79,10 @@ def check_params(needed_params: list):
     def functionality(func):
         def wrap(*args, **kwargs):
             if not all(map(lambda x: x in request.values, needed_params)):
-                missed_params = list(set(needed_params) - set(request.values))
+                missed_params = list(set(needed_params) - set(request.values.keys()))
                 return api.OneOrMoreParamsMissedError(missed_params).__dict__()
             if not all(map(lambda x: bool(request.values[x]), needed_params)):
-                missed_params = list(set(needed_params) - set(request.values))
+                missed_params = list(set(needed_params) - set(request.values.keys()))
                 return api.OneOrMoreParamsMissedError(missed_params).__dict__()
 
             return func(*args, **kwargs)
@@ -112,6 +113,7 @@ def get_value(key: str, default, check_func=lambda x: x):
     Проверяет request, соответствует ли key установленной функции.
     Если да, то возвращает значение, иначе отдаёт default.
     """
+
     return request.values.get(key) if check_func(request.values.get(key)) else default
 
 
@@ -248,7 +250,7 @@ def delete_comment():
     return api.SuccessResponse().__dict__()
 
 
-@app.route("/events", methods=["GET"])
+@app.route("/events", methods=["GET", "OPTIONS"])
 @cross_origin()
 def index():
     query = get_value("query", "", lambda x: bool(x))
@@ -261,7 +263,7 @@ def index():
     return api.EventsResponse(events).__dict__()
 
 
-@app.route("/event", methods=["GET", "POST", "DELETE", "PATCH"])
+@app.route("/event", methods=["GET", "POST", "DELETE", "PATCH", "OPTIONS"])
 @cross_origin()
 def event_path():
     if request.method == "GET":
@@ -274,7 +276,7 @@ def event_path():
         return edit_event()
 
 
-@app.route("/comments", methods=["GET", "POST", "DELETE"])
+@app.route("/comments", methods=["GET", "POST", "DELETE", "OPTIONS"])
 @cross_origin()
 def comments_path():
     if request.method == "GET":
@@ -285,22 +287,22 @@ def comments_path():
         return delete_comment()
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST", "OPTIONS"])
 @cross_origin()
 @check_params(["hash_password", "email"])
 def login():
-    this_request = dict(request.values)
+    this_request = request.values
     success = authenticate(this_request["email"], this_request["hash_password"])
     if success:
         return api.SuccessResponse(token=session.get("token")).__dict__()
     return api.WrongPasswordOrEmail().__dict__()
 
 
-@app.route('/register', methods=["POST"], endpoint="account_register")
+@app.route('/register', methods=["POST", "OPTIONS"], endpoint="account_register")
 @cross_origin()
 @check_params(["email", "password", "role", "full_name"])
 def account_register():
-    this_request = dict(request.values)
+    this_request = request.values
 
     user = registration(
         this_request["email"], this_request["full_name"],
@@ -312,7 +314,7 @@ def account_register():
     return api.RegistrationError(user.comment).__dict__()
 
 
-@app.route("/verify", methods=["POST"], endpoint="account_verify")
+@app.route("/verify", methods=["POST", "OPTIONS"], endpoint="account_verify")
 @cross_origin()
 @need_access("verify_accounts")
 @check_params(["user_id"])
@@ -328,7 +330,7 @@ def account_verify():
     return api.SuccessResponse().__dict__()
 
 
-@app.route("/accounts", methods=["GET"], endpoint="accounts")
+@app.route("/accounts", methods=["GET", "OPTIONS"], endpoint="accounts")
 @cross_origin()
 @need_access("get_accounts_info")
 @check_params(["limit", "offset"])
@@ -350,7 +352,7 @@ def accounts():
     return api.UsersResponse(accounts_list).__dict__()
 
 
-@app.route("/own_account", methods=["PATCH"], endpoint="account")
+@app.route("/own_account", methods=["PATCH", "OPTIONS"], endpoint="account")
 @cross_origin()
 @need_access("edit_own_account")
 def correct_own_account():
@@ -374,7 +376,7 @@ def correct_own_account():
     return api.SuccessResponse().__dict__()
 
 
-@app.route("/account", methods=["PATCH"], endpoint="correct_another_account")
+@app.route("/account", methods=["PATCH", "OPTIONS"], endpoint="correct_another_account")
 @cross_origin()
 @need_access("edit_account_roles")
 @check_params(["user_id", "role"])
@@ -392,7 +394,7 @@ def correct_another_account():
     return api.BaseResponse(200 if success else 400).__dict__()
 
 
-@app.route("/event/save", methods=["POST", "DELETE"], endpoint="saving_event")
+@app.route("/event/save", methods=["POST", "DELETE", "OPTIONS"], endpoint="saving_event")
 @cross_origin()
 @need_access("event_save")
 @check_params(["id", ])
@@ -422,7 +424,7 @@ def saving_event():
     return success.__dict__()
 
 
-@app.route("/event/rate", methods=["PUT"], endpoint="rating_event")
+@app.route("/event/rate", methods=["PUT", "OPTIONS"], endpoint="rating_event")
 @cross_origin()
 @need_access("event_rate")
 @check_params(["id", "rate"])
@@ -447,6 +449,21 @@ def rating_event():
     if not success:
         return api.NotFound().__dict__()
     return api.SuccessResponse().__dict__()
+
+
+@app.before_request
+def before_request():
+    """
+    Данные, приходящие с фронта приходят
+    не в удобном варианте.
+    Этот метод нужен для упрощения всей ситуации.
+    """
+    if request.method == "OPTIONS":
+        return
+    this_request = request.data.decode("utf-8")
+    data = json_loads(f"{this_request}")
+
+    request.__setattr__("values", data)
 
 
 @app.before_first_request
