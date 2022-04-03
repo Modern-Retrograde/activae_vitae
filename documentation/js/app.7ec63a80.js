@@ -94,6 +94,7 @@
         },
         response: {
             code: 200,
+            user_id: 1,
             token: "233JJjrrddd555ccd4LLSSHhhshshaLss"
         }
     },

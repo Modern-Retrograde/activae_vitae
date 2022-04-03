@@ -43,6 +43,7 @@ def authenticate(email: str, hash_password: str):
     token = behaviour.user_authenticate(email, hash_password)
     if token:
         session.setdefault("token", token.key)
+        session.setdefault("user_id", token.user_id)
         session.setdefault("expire_date", token.expire_date)
         return True
     return False
@@ -294,7 +295,7 @@ def login():
     this_request = request.values
     success = authenticate(this_request["email"], this_request["hash_password"])
     if success:
-        return api.SuccessResponse(token=session.get("token")).__dict__()
+        return api.SuccessResponse(token=session.get("token"), user_id=session.get("user_id")).__dict__()
     return api.WrongPasswordOrEmail().__dict__()
 
 
