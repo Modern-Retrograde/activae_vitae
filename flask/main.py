@@ -1,7 +1,7 @@
 # Здесь происходит определение ответов различных запросов Фласком.
 
 from flask import Flask
-from flask import request, session
+from flask import request
 from flask_cors import CORS, cross_origin
 from hashlib import md5
 from datetime import datetime
@@ -42,25 +42,24 @@ def registration(email: str, full_name: str,
 def authenticate(email: str, hash_password: str):
     token = behaviour.user_authenticate(email, hash_password)
     if token:
-        session.setdefault("token", token.key)
-        session.setdefault("user_id", token.user_id)
-        session.setdefault("expire_date", token.expire_date)
-        return True
+        return token
     return False
 
 
-def authorize(token: str):
-    if token:
-        user = behaviour.user_authorize(token)
-        return user
-    return False
+def authorize():
+    if not request.headers.get("Authorization"):
+        return False
+
+    auth = request.headers.get("Authorization").split(" ")
+    user = behaviour.user_authorize(auth[1])
+    return user
 
 
 def need_access(right_to_check: str):
     def functionality(func):
         def wrap(*args, **kwargs):
             user: User
-            user = authorize(session.get("token"))
+            user = authorize()
 
             if not user:
                 return api.Unauthorized().__dict__()
@@ -136,7 +135,7 @@ def get_event():
 )
 def add_event():
     user: User
-    user = authorize(session.get("token"))
+    user = authorize()
     this_request = request.values
 
     event_date = is_correct_date(this_request["date"])
@@ -228,7 +227,7 @@ def add_comment():
     event_id = int(event_id)
 
     user: User
-    user = authorize(session.get("token"))
+    user = authorize()
     user_id = user.id
     success = behaviour.add_comment(user_id, text, event_id)
     if not success:
@@ -293,10 +292,11 @@ def comments_path():
 @check_params(["hash_password", "email"])
 def login():
     this_request = request.values
-    success = authenticate(this_request["email"], this_request["hash_password"])
-    if success:
-        return api.SuccessResponse(token=session.get("token"), user_id=session.get("user_id")).__dict__()
-    return api.WrongPasswordOrEmail().__dict__()
+    token = authenticate(this_request["email"], this_request["hash_password"])
+    if isinstance(token, bool) and not token:
+        return api.WrongPasswordOrEmail().__dict__()
+
+    return api.SuccessResponse(token=token.key, user_id=token.user_id).__dict__()
 
 
 @app.route('/register', methods=["POST", "OPTIONS"], endpoint="account_register")
@@ -338,7 +338,7 @@ def account_verify():
 def accounts():
     limit = get_value("limit", None, is_num)
     offset = get_value("offset", None, is_num)
-    print("I am here!")
+
     if not limit:
         return api.ParamMustBeNum("limit").__dict__()
     if not offset:
@@ -347,7 +347,7 @@ def accounts():
     limit = int(limit)
     offset = int(offset)
     accounts_list = behaviour.get_users(limit, offset)
-    print(accounts_list)
+
     if not accounts_list:
         return api.NotFound().__dict__()
     return api.UsersResponse(accounts_list).__dict__()
@@ -362,7 +362,7 @@ def correct_own_account():
     email = get_value("email", None)
 
     user: User
-    user = authorize(session.get("token"))
+    user = authorize()
     if not user:
         return api.Unauthorized().__dict__()
     if role:
@@ -401,7 +401,7 @@ def correct_another_account():
 @check_params(["id", ])
 def saving_event():
     user: User
-    user = authorize(session.get("token"))
+    user = authorize()
     user_id = user.id
     event_id = get_value("id", None, is_num)
 
@@ -431,7 +431,7 @@ def saving_event():
 @check_params(["id", "rate"])
 def rating_event():
     user: User
-    user = authorize(session.get("token"))
+    user = authorize()
     user_id = user.id
 
     event_id = get_value("id", None, is_num)
@@ -441,6 +441,7 @@ def rating_event():
         return api.ParamMustBeNum("id").__dict__()
     if not rate:
         return api.ParamMustBeNum("rate").__dict__()
+
     rate = int(rate)
     if not -1 <= rate <= 1:
         return api.ErrorResponse(400, "'rate' should be from -1 to 1. ").__dict__()
@@ -462,14 +463,14 @@ def before_request():
     if request.method == "OPTIONS":
         return
     this_request = request.data.decode("utf-8")
-    data = json_loads(f"{this_request}")
 
-    request.__setattr__("values", data)
+    if this_request:
+        data = json_loads(f"{this_request}")
+    else:
+        data = dict()
 
-
-@app.errorhandler(500)
-def error_happened(e):
-    return {"code": 500, "error": str(e)}
+    if not request.values:
+        request.__setattr__("values", data)
 
 
 @app.before_first_request

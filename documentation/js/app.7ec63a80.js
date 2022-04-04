@@ -3,7 +3,7 @@
     {
         id: 1,
         name:"/login POST",
-        description:"Получение нового токена для пользователя. Необходимо в качестве пароля передавать хэш-пароль."
+        description:"Получение нового токена для пользователя. Его надо указывать заголовком Authorization: Basic <token>"
     },
     {
         id: 2,
@@ -296,5 +296,5 @@
         }
     }
 
-    };console.log(c);var l={examples:c,documenation:a};function d(e){var t="Params to SEND:\n",n="Params in RESPONSE:\n";if(!e)return"";for(var i=0,r=Object.entries(e.send);i<r.length;i++){var o=Object(s["a"])(r[i],2),a=o[0],c=o[1];t+="  "+a+": "+JSON.stringify(c)+"\n"}for(var l=0,d=Object.entries(e.response);l<d.length;l++){var p=Object(s["a"])(d[l],2),u=p[0],m=p[1];n+="  "+u+": "+JSON.stringify(m)+"\n"}return t+"\n\n\n"+n}var p={name:"App",data:function(){return{elementsList:l.documenation,activeElement:null,docsExample:l.examples,translitaration:d}},methods:{setValuesForDocumentation:function(e){var t=e.description,n=e;return t=t.replace("\n","<br />"),n.description=t,n.example=this.translitaration(this.docsExample[n.name]),this.activeElement=n,null}}},u=p,m=(n("d226"),n("2877")),v=Object(m["a"])(u,r,o,!1,null,null,null),f=v.exports;i["a"].config.productionTip=!1,new i["a"]({render:function(e){return e(f)},data:{}}).$mount("#app")},d226:function(e,t,n){"use strict";n("12c0")}});
+    };console.log(c);var l={examples:c,documenation:a};function d(e){var t="Параметры отправления:\n",n="Ответ сервера:\n";if(!e)return"";for(var i=0,r=Object.entries(e.send);i<r.length;i++){var o=Object(s["a"])(r[i],2),a=o[0],c=o[1];t+="  "+a+": "+JSON.stringify(c)+"\n"}for(var l=0,d=Object.entries(e.response);l<d.length;l++){var p=Object(s["a"])(d[l],2),u=p[0],m=p[1];n+="  "+u+": "+JSON.stringify(m)+"\n"}return t+"\n\n\n"+n}var p={name:"App",data:function(){return{elementsList:l.documenation,activeElement:null,docsExample:l.examples,translitaration:d}},methods:{setValuesForDocumentation:function(e){var t=e.description,n=e;return t=t.replace("\n","<br />"),n.description=t,n.example=this.translitaration(this.docsExample[n.name]),this.activeElement=n,null}}},u=p,m=(n("d226"),n("2877")),v=Object(m["a"])(u,r,o,!1,null,null,null),f=v.exports;i["a"].config.productionTip=!1,new i["a"]({render:function(e){return e(f)},data:{}}).$mount("#app")},d226:function(e,t,n){"use strict";n("12c0")}});
 //# sourceMappingURL=app.7ec63a80.js.map

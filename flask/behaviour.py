@@ -355,7 +355,6 @@ def get_users(limit: int, offset: int):
     session: SessionObject
     with Session() as session:
         users = session.query(User).limit(limit).offset(offset).all()
-        print("292 behaviour", users)
     return users
 
 
