@@ -467,6 +467,11 @@ def before_request():
     request.__setattr__("values", data)
 
 
+@app.errorhandler(500)
+def error_happened(e):
+    return {"code": 500, "error": str(e)}
+
+
 @app.before_first_request
 def initializing():
     if not behaviour.initialize():
