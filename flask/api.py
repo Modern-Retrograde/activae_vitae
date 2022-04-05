@@ -97,7 +97,6 @@ class EventsResponse(BaseResponse):
                 "id": event.id,
                 "name": event.name,
                 "short_description": event.short_description,
-                "description": event.description,
                 "format": event.event_format,
                 "date": event.event_date.strftime(date_format),
                 "is_saved": bool(is_saved)
@@ -121,6 +120,7 @@ class EventResponse(BaseResponse):
             "name": self.event.name,
             "format": self.event.event_format,
             "short_description": self.event.short_description,
+            "description": self.event.description,
             "photos": list(map(lambda x: x.link, self.photos))
         }
         response["event"] = event
