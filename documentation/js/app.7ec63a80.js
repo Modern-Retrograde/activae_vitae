@@ -95,6 +95,9 @@
         response: {
             code: 200,
             user_id: 1,
+            full_name: "Some Test Values",
+            role: "Director",
+            verified: false,
             token: "233JJjrrddd555ccd4LLSSHhhshshaLss"
         }
     },

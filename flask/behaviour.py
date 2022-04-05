@@ -219,6 +219,7 @@ def edit_event(
 
 
 def delete_event(event_id: int):
+    """Удаляет мероприятие."""
     session: SessionObject
     with Session() as session:
         event = session.query(Event).filter(Event.id == event_id).all()
@@ -296,6 +297,7 @@ def add_comment(user_id: int, comment: str, event_id: int):
 
 
 def delete_comment(comment_id: int):
+    """Удаление комментария с его ID."""
     session: SessionObject
     with Session() as session:
         query = session.query(EventComment).filter(EventComment.id == comment_id)
@@ -307,6 +309,7 @@ def delete_comment(comment_id: int):
 
 
 def get_comments(event_id: int):
+    """Получение комментариев под событием."""
     session: SessionObject
     with Session() as session:
         comments = session.query(EventComment).filter(EventComment.event_id == event_id)
@@ -336,6 +339,7 @@ def set_rate(event_id: int, user_id: int, rating: int):
 
 
 def delete_all_users():
+    """Удаление абсолютно всех пользователей из БД."""
     session: SessionObject
     with Session() as session:
         all_users = session.query(User).all()
@@ -359,6 +363,7 @@ def get_users(limit: int, offset: int):
 
 
 def edit_user(user_id: int, role: str = None, email: str = None, full_name: str = None):
+    """Изменение данных о пользователе."""
     session: SessionObject
     with Session() as session:
         user = session.query(User).get(user_id)
@@ -374,7 +379,18 @@ def edit_user(user_id: int, role: str = None, email: str = None, full_name: str 
     return True
 
 
+def get_user_by_id(user_id: int):
+    """Получение пользователя по его ID."""
+    session: SessionObject
+    with Session() as session:
+        user = session.query(User).get(user_id)
+        if not user:
+            return None
+    return user
+
+
 def get_all_users():
+    """Получение абсолютно всех пользователей."""
     session: SessionObject
     with Session() as session:
         all_users = session.query(User).all()

@@ -296,7 +296,17 @@ def login():
     if isinstance(token, bool) and not token:
         return api.WrongPasswordOrEmail().__dict__()
 
-    return api.SuccessResponse(token=token.key, user_id=token.user_id).__dict__()
+    user = behaviour.get_user_by_id(token.user_id)
+    if not user:
+        return api.AccountWasDeleted().__dict__()
+
+    return api.SuccessResponse(
+        token=token.key,
+        user_id=token.user_id,
+        full_name=user.full_name,
+        role=user.role,
+        verified=user.verified
+    ).__dict__()
 
 
 @app.route('/register', methods=["POST", "OPTIONS"], endpoint="account_register")

@@ -58,6 +58,11 @@ class TooLongEventName(ErrorResponse):
         super(TooLongEventName, self).__init__(400, "Too long name for the event, max: " + str(maximum))
 
 
+class AccountWasDeleted(ErrorResponse):
+    def __init__(self):
+        super(AccountWasDeleted, self).__init__(500, "Account was deleted. Please re-login.")
+
+
 class WrongPasswordOrEmail(ErrorResponse):
     def __init__(self):
         super(WrongPasswordOrEmail, self).__init__(403, "Wrong email or password")
