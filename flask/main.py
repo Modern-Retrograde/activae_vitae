@@ -52,6 +52,7 @@ def authorize():
 
     auth = request.headers.get("Authorization").split(" ")
     user = behaviour.user_authorize(auth[1])
+
     return user
 
 
@@ -261,6 +262,36 @@ def index():
     if not events:
         return api.NotFound().__dict__()
     return api.EventsResponse(events).__dict__()
+
+
+@app.route("/my_events", methods=["GET", "OPTIONS"])
+@check_params(["limit", "offset"])
+def my_events():
+    offset = get_value("offset", 0, is_num)
+    limit = get_value("limit", 10, is_num)
+    user: User
+    user = authorize()
+    if not user:
+        return api.Unauthorized().__dict__()
+
+    users_events = behaviour.get_events(offset, limit, user_id=user.id)
+
+    return api.EventsResponse(users_events)
+
+
+@app.route("/own_events", methods=["GET", "OPTIONS"])
+@check_params(["limit", "offset"])
+def own_events():
+    offset = get_value("offset", 0, is_num)
+    limit = get_value("limit", 10, is_num)
+    user: User
+    user = authorize()
+    if not user:
+        return api.Unauthorized().__dict__()
+
+    users_events = behaviour.get_events(offset, limit, organizer_id=user.id)
+
+    return api.EventsResponse(users_events)
 
 
 @app.route("/event", methods=["GET", "POST", "DELETE", "PATCH", "OPTIONS"])

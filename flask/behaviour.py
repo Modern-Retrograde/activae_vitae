@@ -100,6 +100,7 @@ def user_authorize(key: str):
         if token.expire_date <= datetime.now():
             return False
 
+        user: User
         user = session.query(User).filter(User.id == token.user_id).all()
         if not user:
             return False
@@ -122,14 +123,22 @@ def get_event_by_id(event_id: int):
     }
 
 
-def get_events(offset: int, limit: int, search_by: str):
+def get_events(offset: int, limit: int, search_by: str = None,
+               organizer_id: int = None, user_id: int = None):
     """Получение списка событий."""
     session: SessionObject
     with Session() as session:
         query: Query
         query = session.query(
             Event, EventSaved.is_saved
-        ).filter(Event.name.ilike(f"%{search_by.lower()}%"))
+        )
+
+        if search_by:
+            query = query.filter(Event.name.ilike(f"%{search_by.lower()}%"))
+        if organizer_id:
+            query = query.filter(Event.organizer_id == organizer_id)
+        if user_id:
+            query = query.filter(EventSaved.user_id == user_id)
 
         query = query.join(
             EventSaved,
