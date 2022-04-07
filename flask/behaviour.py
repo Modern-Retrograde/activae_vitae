@@ -235,12 +235,13 @@ def delete_event(event_id: int):
         if not event:
             return False
         event = event[0]
-        session.delete(event)
 
         session.query(EventRate).filter(EventRate.event_id == event_id).delete()
         session.query(EventPhoto).filter(EventPhoto.event_id == event_id).delete()
         session.query(EventSaved).filter(EventSaved.event_id == event_id).delete()
         session.query(EventComment).filter(EventComment.event_id == event_id).delete()
+
+        session.delete(event)
 
         session.commit()
     return True
