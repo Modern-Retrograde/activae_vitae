@@ -1,4 +1,4 @@
-from models import Event, EventComment
+from models import Event, EventComment, EventRate
 from configs import date_format
 
 
@@ -107,6 +107,36 @@ class EventsResponse(BaseResponse):
                 "is_saved": bool(is_saved)
             })
         response["events"] = events
+        return response
+
+
+class RatesResponse(BaseResponse):
+    def __init__(self, rates: list):
+        super(RatesResponse, self).__init__(code=200)
+        self.rates = rates
+
+    def __dict__(self):
+        response = super(RatesResponse, self).__dict__()
+        rate: EventRate
+
+        liked_count = 0
+        disliked_count = 0
+        unknown_count = 0
+
+        for rate in self.rates:
+            if rate.rating == -1:
+                disliked_count += 1
+            elif rate.rating == 0:
+                unknown_count += 1
+            elif rate.rating == 1:
+                liked_count += 1
+
+        response["rates"] = {
+            -1: disliked_count,
+            0: unknown_count,
+            1: liked_count
+        }
+
         return response
 
 

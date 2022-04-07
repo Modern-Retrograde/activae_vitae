@@ -471,11 +471,20 @@ def saving_event():
     return success.__dict__()
 
 
-@app.route("/event/rate", methods=["PUT", "OPTIONS"], endpoint="rating_event")
+@app.route("/event/rate", methods=["GET", "PUT", "OPTIONS"], endpoint="rating_event")
 @cross_origin()
 @need_access("event_rate")
-@check_params(["id", "rate"])
+@check_params(["id"])
 def rating_event():
+    if request.method == "GET":
+        event_id = get_value("id", None, is_num)
+        if not event_id:
+            return api.ParamMustBeNum("id").__dict__()
+        event_id = int(event_id)
+
+        rates = behaviour.get_rates(event_id)
+        return api.RatesResponse(rates).__dict__()
+
     user: User
     user = authorize()
     user_id = user.id

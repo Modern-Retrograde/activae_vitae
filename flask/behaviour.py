@@ -348,6 +348,13 @@ def set_rate(event_id: int, user_id: int, rating: int):
     return True
 
 
+def get_rates(event_id: int):
+    session: SessionObject
+    with Session() as session:
+        rates = session.query(EventRate).filter(EventRate.event_id == event_id).all()
+    return rates
+
+
 def delete_all_users():
     """Удаление абсолютно всех пользователей из БД."""
     session: SessionObject

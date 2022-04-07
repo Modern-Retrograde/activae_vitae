@@ -54,46 +54,51 @@
     },
     {
         id: 12,
+        name: "/event/rate GET",
+        description: "Получение оценок мероприятия. rate возвращается в виде числа (от -1 до 1 включительно)."
+    },
+    {
+        id: 13,
         name: "/my_events GET",
         description: "Возвращает сохранённые мероприятия."
     },
     {
-        id: 13,
+        id: 14,
         name: "/own_events GET",
         description: "Возвращает созданные пользователем мероприятия."
     },
     {
-        id: 14,
+        id: 15,
         name: "/verify POST",
         description: "Подтверждение стороннего аккаунта."
     },
     {
-        id: 15,
+        id: 16,
         name: "/accounts GET",
         description: "Получение списка аккаунтов с рядом характеристик. offset - это смещение от начала списка; limit - максимальное количество объектов."
     },
     {
-        id: 16,
+        id: 17,
         name: "/own_account PATCH",
         description: "Внесение изменений в профиль аккаунта."
     },
     {
-        id: 17,
+        id: 18,
         name: "/account PATCH",
         description: "Внесение роли пользователя в системе."
     },
     {
-        id: 18,
+        id: 19,
         name: "/comments GET",
         description: "Получение всех комментариев в системе."
     },
     {
-        id: 19,
+        id: 20,
         name: "/comments POST",
         description: "Написание комментария."
     },
     {
-        id: 20,
+        id: 21,
         name: "/comments DELETE",
         description: "Удаление комментария."
     }
@@ -231,6 +236,19 @@ c={
         },
         response: {
             code: 200
+        }
+    },
+    "/event/rate GET": {
+        send: {
+            event_id: 1
+        },
+        response: {
+            code: 200,
+            rates: {
+                "-1": 10,
+                "0": 20,
+                "1": 15
+            }
         }
     },
     "/verify POST": {
