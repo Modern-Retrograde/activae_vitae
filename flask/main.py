@@ -266,6 +266,7 @@ def index():
 
 @app.route("/my_events", methods=["GET", "OPTIONS"])
 @check_params(["limit", "offset"])
+@cross_origin()
 def my_events():
     offset = get_value("offset", 0, is_num)
     limit = get_value("limit", 10, is_num)
@@ -279,8 +280,9 @@ def my_events():
     return api.EventsResponse(users_events)
 
 
-@app.route("/own_events", methods=["GET", "OPTIONS"])
 @check_params(["limit", "offset"])
+@app.route("/own_events", methods=["GET", "OPTIONS"])
+@cross_origin()
 def own_events():
     offset = get_value("offset", 0, is_num)
     limit = get_value("limit", 10, is_num)
@@ -318,17 +320,17 @@ def comments_path():
         return delete_comment()
 
 
+@check_params(["hash_password", "email"])
 @app.route("/login", methods=["POST", "OPTIONS"])
 @cross_origin()
-@check_params(["hash_password", "email"])
 def login():
     this_request = request.values
     token = authenticate(this_request["email"], this_request["hash_password"])
-    if isinstance(token, bool) and not token:
+    if token is False:
         return api.WrongPasswordOrEmail().__dict__()
 
     user = behaviour.get_user_by_id(token.user_id)
-    if not user:
+    if user is None:
         return api.AccountWasDeleted().__dict__()
 
     return api.SuccessResponse(
