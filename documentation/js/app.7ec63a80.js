@@ -50,7 +50,7 @@
     {
         id: 11,
         name: "/event/rate PUT",
-        description: "Устанавливает оценку за мероприятие."
+        description: "Устанавливает оценку за мероприятие. rate должен быть от -1 до 1 включительно."
     },
     {
         id: 12,
@@ -227,7 +227,7 @@ c={
     "/event/rate PUT": {
         send: {
             id: 1,
-            rate: 10
+            rate: 1
         },
         response: {
             code: 200

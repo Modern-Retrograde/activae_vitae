@@ -264,8 +264,8 @@ def index():
     return api.EventsResponse(events).__dict__()
 
 
-@app.route("/my_events", methods=["GET", "OPTIONS"])
 @check_params(["limit", "offset"])
+@app.route("/my_events", methods=["GET", "OPTIONS"])
 @cross_origin()
 def my_events():
     offset = get_value("offset", 0, is_num)
@@ -277,7 +277,7 @@ def my_events():
 
     users_events = behaviour.get_events(offset, limit, user_id=user.id)
 
-    return api.EventsResponse(users_events)
+    return api.EventsResponse(users_events).__dict__()
 
 
 @check_params(["limit", "offset"])
@@ -293,7 +293,7 @@ def own_events():
 
     users_events = behaviour.get_events(offset, limit, organizer_id=user.id)
 
-    return api.EventsResponse(users_events)
+    return api.EventsResponse(users_events).__dict__()
 
 
 @app.route("/event", methods=["GET", "POST", "DELETE", "PATCH", "OPTIONS"])
