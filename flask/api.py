@@ -83,6 +83,11 @@ class ParamMustBeNum(ErrorResponse):
         super(ParamMustBeNum, self).__init__(400, f"'{param_name}' param must be num.")
 
 
+class ParamIsTooLong(ErrorResponse):
+    def __init__(self, param_name: str, max_len: int):
+        super(ParamIsTooLong, self).__init__(400, f"'{param_name}' is too long (max: {max_len}).")
+
+
 class EventsResponse(BaseResponse):
     def __init__(self, events: list):
         super(EventsResponse, self).__init__(code=200)

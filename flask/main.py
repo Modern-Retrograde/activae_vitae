@@ -225,6 +225,9 @@ def add_comment():
     text = get_value("text", None)
     if not event_id:
         return api.ParamMustBeNum("event_id").__dict__()
+    if len(text) > 100:
+        return api.ParamIsTooLong("text", 100)
+
     event_id = int(event_id)
 
     user: User
