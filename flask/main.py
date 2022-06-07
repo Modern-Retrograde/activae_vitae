@@ -283,6 +283,11 @@ def my_events():
     return api.EventsResponse(users_events).__dict__()
 
 
+@app.route("/ping", methods=["GET"])
+def ping():
+    return "PONG"
+
+
 @check_params(["limit", "offset"])
 @app.route("/own_events", methods=["GET", "OPTIONS"])
 @cross_origin()

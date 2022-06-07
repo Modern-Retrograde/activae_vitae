@@ -128,7 +128,6 @@ def get_events(offset: int, limit: int, search_by: str = None,
     """Получение списка событий."""
     session: SessionObject
     with Session() as session:
-        query: Query
         query = session.query(
             Event, EventSaved.is_saved
         )
@@ -372,7 +371,7 @@ def delete_all_users():
 
 
 def get_users(limit: int, offset: int):
-    """Поиск пользователя по его ID"""
+    """Получение пользователей."""
     session: SessionObject
     with Session() as session:
         users = session.query(User).limit(limit).offset(offset).all()
